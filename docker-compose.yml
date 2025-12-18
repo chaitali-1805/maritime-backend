@@ -1,0 +1,81 @@
+services:
+  sar-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sar-detection-backend:latest
+    container_name: sar-backend
+    
+    # GPU access - DGX Spark unified memory architecture
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    
+    # Ports
+    ports:
+      - "8000:8000"
+    
+    # CRITICAL for DGX Spark: Increase shared memory for unified memory architecture
+    # DGX Spark has 128GB unified memory, allocate more for Docker
+    shm_size: 16g
+    
+    # IPC mode for better multiprocessing on ARM64
+    ipc: host
+    
+    # Ulimits for memory locking (important for DGX Spark UMA)
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    
+    # Environment variables optimized for DGX Spark
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=1  # CRITICAL: Must be 1 to avoid model reloading
+      - USE_MOCK_MODELS=false
+      - DEVICE=cuda
+      - DTYPE=float16
+      - MAX_BATCH_SIZE=4
+      - ENABLE_CACHING=true
+      # Conservative memory limit for DGX Spark unified memory
+      - MAX_MEMORY_GB=20
+      - ENABLE_MEMORY_MONITORING=true
+      - PYTHONUNBUFFERED=1
+      # DGX Spark unified memory optimization
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+    
+    # Volumes - mount your weights and data
+    volumes:
+      - ./weights:/app/weights
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+      - ./logs:/app/logs
+      # Cache HuggingFace models to avoid re-downloading
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check with longer timeout for DGX Spark
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Resource limits for DGX Spark (128GB total, but be conservative)
+    # Leave memory for OS and buffer cache
+    mem_limit: 48g
+    memswap_limit: 48g

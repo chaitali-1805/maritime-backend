@@ -1,0 +1,35 @@
+# CRITICAL: NumPy must be <2.0 for compatibility with PyTorch container
+numpy>=1.23.0,<2.0
+
+# transformers must be 4.47+ with proper modeling_layers support
+transformers==4.47.1
+# diffusers pinned to version compatible with transformers 4.47+
+diffusers==0.32.1
+# peft pinned to avoid modeling_layers import errors
+peft==0.14.0
+# accelerate compatible with above versions
+accelerate==1.2.1
+huggingface-hub>=0.20.0
+
+# Web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Image processing
+pillow>=10.0.0
+opencv-python-headless>=4.8.0
+
+# Configuration & utilities
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+aiofiles>=23.0.0
+requests>=2.31.0
+
+torchvision==0.21.0
+
+# YOLO and metrics
+ultralytics>=8.0.0
+scipy>=1.11.0
+torchmetrics>=1.2.0
