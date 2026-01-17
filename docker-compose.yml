@@ -52,7 +52,6 @@ services:
     volumes:
       - ./weights:/app/weights
       - ./uploads:/app/uploads
-      - ./output:/app/output
       - ./logs:/app/logs
       # Cache HuggingFace models to avoid re-downloading
       - ~/.cache/huggingface:/root/.cache/huggingface

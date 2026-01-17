@@ -1,50 +1,80 @@
+#!/usr/bin/env python3
 """
-GPU Test Script - Verify your setup
+Quick test script to verify CGAN model loading
 """
 import torch
 import sys
+from pathlib import Path
 
-print("=" * 60)
-print("GPU Test Script")
-print("=" * 60)
+# Add app to path
+sys.path.insert(0, '/app')
 
-print(f"\nPython version: {sys.version}")
-print(f"PyTorch version: {torch.__version__}")
+from app.models.cyclegan_turbo_patched import CycleGAN_Turbo_Patched
 
-# Check CUDA
-print(f"\nCUDA available: {torch.cuda.is_available()}")
-
-if torch.cuda.is_available():
-    print(f"CUDA version: {torch.version.cuda}")
-    print(f"cuDNN version: {torch.backends.cudnn.version()}")
-    print(f"Number of GPUs: {torch.cuda.device_count()}")
+def test_model_loading(checkpoint_path: str):
+    """Test loading the CGAN model"""
+    print("\n" + "="*80)
+    print("TESTING CGAN MODEL LOADING")
+    print("="*80 + "\n")
     
-    for i in range(torch.cuda.device_count()):
-        print(f"\nGPU {i}: {torch.cuda.get_device_name(i)}")
-        props = torch.cuda.get_device_properties(i)
-        print(f"  Total memory: {props.total_memory / 1e9:.2f} GB")
-        print(f"  Multi-processor count: {props.multi_processor_count}")
-        print(f"  CUDA capability: {props.major}.{props.minor}")
+    if not Path(checkpoint_path).exists():
+        print(f"❌ ERROR: Checkpoint not found: {checkpoint_path}")
+        return False
     
-    # Test GPU computation
-    print("\nTesting GPU computation...")
-    x = torch.randn(1000, 1000).cuda()
-    y = torch.randn(1000, 1000).cuda()
-    z = torch.matmul(x, y)
-    print("✓ GPU computation test passed!")
-    
-    # Test FP16
-    print("\nTesting FP16...")
-    x_fp16 = x.half()
-    y_fp16 = y.half()
-    z_fp16 = torch.matmul(x_fp16, y_fp16)
-    print("✓ FP16 computation test passed!")
-    
-else:
-    print("\n⚠️  CUDA is not available!")
-    print("This means PyTorch was installed without CUDA support.")
-    print("\nTo fix this, run:")
-    print("pip uninstall torch torchvision")
-    print("pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121")
+    try:
+        print(f"Loading model from: {checkpoint_path}")
+        print(f"Device: {'cuda' if torch.cuda.is_available() else 'cpu'}")
+        print()
+        
+        # Try to load the model
+        model = CycleGAN_Turbo_Patched(
+            pretrained_path=checkpoint_path,
+            device="cuda" if torch.cuda.is_available() else "cpu",
+            dtype=torch.float16 if torch.cuda.is_available() else torch.float32
+        )
+        
+        print("\n✓ Model loaded successfully!")
+        
+        # Check adapters
+        print("\nChecking adapters...")
+        if hasattr(model.unet, 'peft_config'):
+            adapters = list(model.unet.peft_config.keys())
+            print(f"✓ Found {len(adapters)} adapters: {adapters}")
+            
+            # Try setting each adapter
+            for adapter_name in adapters:
+                try:
+                    model.unet.set_adapter(adapter_name)
+                    print(f"  ✓ Successfully set adapter: {adapter_name}")
+                except Exception as e:
+                    print(f"  ❌ Failed to set adapter {adapter_name}: {e}")
+        else:
+            print("⚠ No PEFT config found - adapters may not be loaded")
+        
+        print("\n" + "="*80)
+        print("✓ MODEL LOADING TEST PASSED")
+        print("="*80 + "\n")
+        
+        return True
+        
+    except Exception as e:
+        print(f"\n❌ ERROR: Failed to load model")
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        print("\n" + "="*80)
+        print("❌ MODEL LOADING TEST FAILED")
+        print("="*80 + "\n")
+        
+        return False
 
-print("\n" + "=" * 60)
+
+if __name__ == "__main__":
+    checkpoint_path = "weights/cgan/sar2optical.pkl"
+    
+    if len(sys.argv) > 1:
+        checkpoint_path = sys.argv[1]
+    
+    success = test_model_loading(checkpoint_path)
+    sys.exit(0 if success else 1)

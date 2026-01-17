@@ -46,7 +46,7 @@ RUN pip uninstall -y numpy && \
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p weights/yolo weights/cgan uploads logs output
+RUN mkdir -p weights/yolo weights/cgan uploads logs
 
 # IMPORTANT: Verify img2img-turbo exists
 # The img2img-turbo repo should be at weights/cgan/img2img-turbo/
