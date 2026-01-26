@@ -61,20 +61,40 @@ class ModelRegistry:
             weight_file="yolo/yolov8_optical.pt",
             description="YOLOv8 trained on optical ship images"
         ),
-      
-        
-        # =========================================
-        # ADD NEW YOLO MODELS BELOW THIS LINE
-        # =========================================
-        # Example:
-        # "yolov9_sar": YOLOModelConfig(
-        #     id="yolov9_sar",
-        #     name="YOLOv9 SAR",
-        #     version="v9",
-        #     model_type=ModelType.SAR,
-        #     weight_file="yolo/yolov9_sar.pt",
-        #     description="YOLOv9 trained on SAR ship images"
-        # ),
+        # YOLOv11 Models
+        "yolov11_sar": YOLOModelConfig(
+            id="yolov11_sar",
+            name="YOLOv11 SAR",
+            version="v11",
+            model_type=ModelType.SAR,
+            weight_file="yolo/yolov11_sar.pt",
+            description="YOLOv11 trained on SAR ship images"
+        ),
+        "yolov11_optical": YOLOModelConfig(
+            id="yolov11_optical",
+            name="YOLOv11 Optical",
+            version="v11",
+            model_type=ModelType.OPTICAL,
+            weight_file="yolo/yolov11_optical.pt",
+            description="YOLOv11 trained on optical ship images"
+        ),
+        # YOLOv12 Models
+        "yolov12_sar": YOLOModelConfig(
+            id="yolov12_sar",
+            name="YOLOv12 SAR",
+            version="v12",
+            model_type=ModelType.SAR,
+            weight_file="yolo/yolov12_sar.pt",
+            description="YOLOv12 trained on SAR ship images"
+        ),
+        "yolov12_optical": YOLOModelConfig(
+            id="yolov12_optical",
+            name="YOLOv12 Optical",
+            version="v12",
+            model_type=ModelType.OPTICAL,
+            weight_file="yolo/yolov12_optical.pt",
+            description="YOLOv12 trained on optical ship images"
+        ),
     }
     
     # =========================================

@@ -52,7 +52,6 @@ services:
     volumes:
       - ./weights:/app/weights
       - ./uploads:/app/uploads
-      - ./output:/app/output
       - ./logs:/app/logs
       # Cache HuggingFace models to avoid re-downloading
       - ~/.cache/huggingface:/root/.cache/huggingface
@@ -79,3 +78,24 @@ services:
     # Leave memory for OS and buffer cache
     mem_limit: 48g
     memswap_limit: 48g
+  
+  # ngrok tunnel for exposing backend to internet
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok-tunnel
+    restart: unless-stopped
+    command:
+      - "http"
+      - "sar-backend:8000"
+      - "--log=stdout"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"  # ngrok web interface
+    depends_on:
+      - sar-backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "2"
